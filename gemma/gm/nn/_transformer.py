@@ -18,12 +18,16 @@ from __future__ import annotations
 
 import dataclasses
 import functools
+import typing
 from typing import Any, ClassVar
 
 import einops
 import flax
 from flax import linen as nn
-from gemma import transformer
+from gemma.gm.math import _pos_utils
+from gemma.gm.nn import _config
+from gemma.gm.nn import _layers
+from gemma.gm.nn import _modules
 from gemma.gm.utils import _attention_mask
 from gemma.gm.utils import _dtype_params
 from gemma.gm.utils import _jax_utils
@@ -60,7 +64,7 @@ class Output:
 
   # When `return_last_only`, `logits` is `*B V`
   logits: Float['*B L V'] | Float['*B V']
-  cache: transformer.Cache | None
+  cache: _config.Cache | None
   hidden_states: Float['*B L D'] | Float['*B D'] | None
 
 
@@ -81,8 +85,7 @@ class _Inputs:
   inputs_mask: Bool['B L']
 
 
-# TODO(epot): Merge this class with `transformer.Transformer`
-class Transformer(transformer.Transformer):
+class Transformer(nn.Module):
   """Base transformer class.
 
   Attributes:
@@ -90,6 +93,7 @@ class Transformer(transformer.Transformer):
       Otherwise, return all logits. Default to `False`
     dtype: The parameter dtype. Default to `jnp.bfloat16`.
   """
+  _: dataclasses.KW_ONLY
 
   return_last_only: bool | None = None
 
@@ -100,11 +104,68 @@ class Transformer(transformer.Transformer):
   tokens: kontext.Key = kontext.REQUIRED
   images: kontext.Key | None = None
 
+  config: _config.TransformerConfig
   # Model info to specifiy the tokenizer version and default checkpoint.
   INFO: ClassVar[ModelInfo] = ModelInfo()
 
   def __post_init__(self):
     super().__post_init__()
+
+  def setup(self):
+    self.embedder = _modules.Embedder(
+        vocab_size=self.config.num_embed,
+        embed_dim=self.config.embed_dim,
+        vision_proj_dim=self.config.vision_encoder.siglip_encoder.width
+        if self.config.vision_encoder
+        else None,
+    )
+
+    self.blocks = [
+        _modules.Block(
+            name=f'layer_{i}',
+            num_heads=self.config.num_heads,
+            num_kv_heads=self.config.num_kv_heads,
+            embed_dim=self.config.embed_dim,
+            head_dim=self.config.head_dim,
+            hidden_dim=self.config.hidden_dim,
+            sliding_window_size=self.config.sliding_window_size,
+            use_post_attn_norm=self.config.use_post_attn_norm,
+            use_post_ffw_norm=self.config.use_post_ffw_norm,
+            attn_logits_soft_cap=self.config.attn_logits_soft_cap,
+            attn_type=attn_type,
+            query_pre_attn_scalar=self.config.query_pre_attn_scalar(),
+            transpose_gating_einsum=self.config.transpose_gating_einsum,
+            use_qk_norm=self.config.use_qk_norm,
+            rope_base_frequency=self.config.local_base_frequency
+            if attn_type == _modules.AttentionType.LOCAL_SLIDING
+            else self.config.global_base_frequency,
+            rope_scale_factor=self.config.local_scale_factor
+            if attn_type == _modules.AttentionType.LOCAL_SLIDING
+            else self.config.global_scale_factor,
+        )
+        for i, attn_type in zip(
+            range(self.config.num_layers), self.config.attention_types
+        )
+    ]
+    self.final_norm = _layers.RMSNorm()
+
+    self.vision_encoder = self.config.vision_encoder
+
+  if not typing.TYPE_CHECKING:
+
+    def __getattr__(self, name: str):
+      # It's convenient to be able to access the vision encoder directly.
+      # However it has to be initialized in setup, so can't use a standard
+      # `@property`
+      if name == 'vision_encoder':
+        return self.config.vision_encoder
+      return super().__getattr__(name)
+
+  else:  # For type checking / auto-complete
+
+    @property
+    def vision_encoder(self) -> gemma_vision.SigLiPFromPatches | None:
+      return self.config.vision_encoder
 
   # Calling `model.apply` on Colab makes the Kernel crash unless it is jitted.
   @functools.partial(
@@ -127,7 +188,7 @@ class Transformer(transformer.Transformer):
       # TODO(epot): Cleanup and simplify the API.
       positions: Int['*B L'] | None = None,
       positions_offset: Int['*B'] | None = None,
-      cache: transformer.Cache | None = None,
+      cache: _config.Cache | None = None,
       # During training and pre-filling, the attention mask is `*B L L`
       # When sampling (after prefilling), tokens are decoded one by one,
       # so the attention mask is `*B 1 cache_length`
@@ -245,7 +306,7 @@ class Transformer(transformer.Transformer):
       dtype: jnp.dtype[Any],
       cache_length: int,
       sharding: kd.sharding.ShardingTree | None = None,
-  ) -> transformer.Cache:
+  ) -> _config.Cache:
     cache = self.config.init_cache(
         batch_size=batch_size,
         dtype=dtype,
@@ -299,7 +360,7 @@ class Transformer(transformer.Transformer):
     # tokens inserted for the images.
     # This is what the `gm.text.Sampler` implementation does.
     if positions is None:
-      positions = transformer.build_positions_from_mask(inputs_mask)
+      positions = _pos_utils.build_positions_from_mask(inputs_mask)
       # For multi-turn, during the pre-fill phase, the positions should be
       # shifted to take into account the previous turns.
       if positions_offset is not None:
@@ -345,6 +406,7 @@ class Transformer(transformer.Transformer):
 
   def _encode_vision(self, images: UInt8['B N H W C']) -> Float['B N P D']:
     """Encode the images into the same space as the text embeddings."""
+    assert self.vision_encoder is not None
     patches = self.vision_encoder.patchify_images(images)
     soft_embeddings = self.vision_encoder(patches=patches, is_training=False)
     soft_embeddings = self.embedder.encode_vision(soft_embeddings)
