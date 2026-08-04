@@ -67,9 +67,9 @@ class SamplingState:
   """
 
   step: Int['']
-  done: Bool['B']
-  last_token: Int['B']
-  last_token_pos: Int['B']
+  done: Bool['B']  # pyrefly: ignore[unknown-name]
+  last_token: Int['B']  # pyrefly: ignore[unknown-name]
+  last_token_pos: Int['B']  # pyrefly: ignore[unknown-name]
   predicted_tokens: Int['B max_output_length']
   predicted_logits: Float['B max_out_length']
   cache: Cache
@@ -90,11 +90,11 @@ class SamplerOutput:
   state: SamplingState
 
   @property
-  def tokens(self) -> Int['B L'] | Int['L']:
+  def tokens(self) -> Int['B L'] | Int['L']:  # pyrefly: ignore[unknown-name]
     """Predicted tokens."""
     return self._maybe_unbatch(self.state.predicted_tokens)
 
-  def _maybe_unbatch(self, x: Array['B *d']) -> Float['*d']:
+  def _maybe_unbatch(self, x: Array['B *d']) -> Float['*d']:  # pyrefly: ignore[unknown-name]
     if isinstance(self.text, str):
       (x,) = x
     return x
@@ -154,7 +154,7 @@ class Sampler:
       rng: PRNGKeyLike | None = None,
       return_state: bool = False,
       sampling: SamplingMethod | None = None,
-      sharding: kd.sharding.ShardingTree | None = None,
+      sharding: kd.sharding.ShardingTree | None = None,  # pyrefly: ignore[not-a-type]
   ) -> str | list[str] | SamplerOutput:
     # pylint: disable=g-docstring-quotes
     '''Samples a string from the model.
@@ -379,7 +379,7 @@ class SamplerCall:
     )
 
     # Merge the computed kv values from the prompt back into the old cache.
-    cache = _merge_initial_cache(old_cache=cache, new_cache=out.cache)
+    cache = _merge_initial_cache(old_cache=cache, new_cache=out.cache)  # pyrefly: ignore[missing-attribute]
 
     # T5Gemma starts from position 0 for the first BOS token.
     last_token_pos = jnp.zeros((batch_size,), dtype=jnp.int32)
@@ -458,7 +458,7 @@ class SamplerCall:
         method=self.model.decode_one_step,
     )
 
-    logits = out.logits
+    logits = out.logits  # pyrefly: ignore[missing-attribute]
     # Logit is `B L V` with `L=1`, so collapse the L dimension.
     logits = einops.rearrange(logits, 'B 1 V -> B V')
     if self.forbidden_tokens:  # Eventually filter out the forbidden tokens.
@@ -489,7 +489,7 @@ class SamplerCall:
         last_token_pos=state.last_token_pos + ~state.done,
         predicted_tokens=predicted_tokens,
         predicted_logits=predicted_logits,
-        cache=out.cache,
+        cache=out.cache,  # pyrefly: ignore[missing-attribute]
         rng=next_rng,
         encoder_mask=state.encoder_mask,
     )
@@ -522,7 +522,7 @@ def _normalize_rng(seed_or_rng: PRNGKeyLike | None) -> PRNGKey:
   if seed_or_rng is None:
     seed_or_rng = py_random.randint(0, 1000000000)
   if not isinstance(seed_or_rng, jax.Array):
-    seed_or_rng = jax.random.key(seed_or_rng)
+    seed_or_rng = jax.random.key(seed_or_rng)  # pyrefly: ignore[bad-argument-type]
   return seed_or_rng
 
 
@@ -540,7 +540,7 @@ def _merge_initial_cache(
   """Merges a new cache into an existing cache, updating 'k' and 'v' arrays."""
   updated_cache = jax.tree.map(lambda x: x, new_cache)  # Deep-copy
 
-  for k, (old_data, new_data) in epy.zip_dict(old_cache, new_cache):
+  for k, (old_data, new_data) in epy.zip_dict(old_cache, new_cache):  # pyrefly: ignore[bad-argument-type]
     del old_data
     updated_cache[k] = new_data
     # Update end_index for self-attention layers.

@@ -26,7 +26,7 @@ def test_sampler():
 
   # Example of multi-turn conversation
   sampler = gm.text.ChatSampler(
-      model=model,
+      model=model,  # pyrefly: ignore[bad-argument-type]
       params=params,
   )
   out = sampler.chat('Write a haiku about LLMs. No comments.')
@@ -66,7 +66,7 @@ def test_sampler_stop_token():
 
   # Example of multi-turn conversation
   sampler = gm.text.ChatSampler(
-      model=model,
+      model=model,  # pyrefly: ignore[bad-argument-type]
       params=params,
       stop_tokens=[stop_token],
   )

@@ -83,7 +83,7 @@ def _mock_flax_module_param() -> None:
     else:
       return param(self, name, init_fn, shape, dtype, **kwargs)
 
-  nn.Module.param = decorated
+  nn.Module.param = decorated  # pyrefly: ignore[bad-assignment]
 
 
 def _should_replace_dtype(

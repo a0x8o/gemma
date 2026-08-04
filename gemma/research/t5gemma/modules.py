@@ -421,7 +421,7 @@ class Block(nn.Module):
       self_attn_cache: LayerCache | None,
       self_attn_mask: Array['#B T _'],
       cross_attn_kv: Array['B S D2'] | None = None,
-      cross_attn_mask: Array['B #T S'] | None = None,
+      cross_attn_mask: Array['B #T S'] | None = None,  # pyrefly: ignore[unknown-name]
       cross_attn_cache: LayerCache | None = None,
   ) -> tuple[LayerCache | None, LayerCache | None, Array['B T D']]:
     """Applies the block to the inputs.
@@ -635,7 +635,7 @@ class Transformer(nn.Module):
       self_attn_mask: Array['#B T _'],
       cache: Cache | None = None,
       cross_attn_kv: Array['B S D2'] | None = None,
-      cross_attn_mask: Array['B #T S'] | None = None,
+      cross_attn_mask: Array['B #T S'] | None = None,  # pyrefly: ignore[unknown-name]
   ) -> TransformerOutput:
     """Transformer forward pass.
 

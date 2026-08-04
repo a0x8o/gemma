@@ -51,7 +51,7 @@ class VisionBlock(nn.Module):
   ) -> tuple[Float['B L D'], None]:  # pyrefly: ignore[not-a-type]
     """Calls the block."""
     outputs = self.block(
-        inputs=inputs, attn_mask=attn_mask, positions=positions
+        inputs=inputs, attn_mask=attn_mask, positions=positions  # pyrefly: ignore[bad-argument-type]
     )
     return outputs, None
 

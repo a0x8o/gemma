@@ -266,7 +266,7 @@ def _get_attn_output(
   params = attn.init(rng, x, segment_pos, cache, attn_mask)
   cache, output = attn.apply(params, x, segment_pos, cache, attn_mask)
 
-  return cache, output
+  return cache, output  # pyrefly: ignore[bad-return]
 
 
 def test_attention():
@@ -367,7 +367,7 @@ def test_sliding_window():
       params, x, segment_pos, cache, attn_mask
   )
 
-  assert not (output == sliding_output).all()
+  assert not (output == sliding_output).all()  # pyrefly: ignore[missing-attribute]
 
 
 def test_query_pre_attn_scalar_modifies_output():
@@ -435,7 +435,7 @@ def test_ffw(transpose_gating_einsum: bool):
   outputs = ffw.apply({'params': params}, inputs)
 
   expected_shape = (batch_size, seq_len, features)
-  assert outputs.shape == expected_shape
+  assert outputs.shape == expected_shape  # pyrefly: ignore[missing-attribute]
 
 
 @pytest.mark.parametrize(
@@ -457,7 +457,7 @@ def test_ffw_grad(transpose_gating_einsum: bool, expected_grad: list[float]):
       transpose_gating_einsum=transpose_gating_einsum,
   )
   loss = lambda params, inputs: jnp.square(
-      ffw.apply(params, inputs) - jnp.ones((batch_size, 1, features))
+      ffw.apply(params, inputs) - jnp.ones((batch_size, 1, features))  # pyrefly: ignore[unsupported-operation]
   ).mean()
 
   params = ffw.init(jax.random.PRNGKey(0), inputs)
@@ -553,7 +553,7 @@ def test_block():
 
   # Check that output shape is correct.
   expected_output_shape = (batch_size, seq_len, embed_dim)
-  assert outputs.shape == expected_output_shape
+  assert outputs.shape == expected_output_shape  # pyrefly: ignore[missing-attribute]
 
 
 def test_post_attention_norm_modifies_output():
@@ -744,7 +744,7 @@ def test_block_with_altup():
   # Check that output shape is correct.
   expected_output_shape = (batch_size, seq_len, embed_dim)
   np.testing.assert_equal(len(outputs), num_altup_inputs)
-  np.testing.assert_array_equal(outputs[0].shape, expected_output_shape)
+  np.testing.assert_array_equal(outputs[0].shape, expected_output_shape)  # pyrefly: ignore[bad-index]
 
 
 def test_laurel_module():
@@ -760,14 +760,14 @@ def test_laurel_module():
 
   # Test that the shape matches.
   expected_shape = (batch_size, seq_len, d_model)
-  np.testing.assert_array_equal(outputs.shape, expected_shape)
+  np.testing.assert_array_equal(outputs.shape, expected_shape)  # pyrefly: ignore[missing-attribute]
 
   # Test that the output is correct.
   linear_left = params['params']['linear_left']['w']
   linear_right = params['params']['linear_right']['w']
   computed_outputs = jnp.einsum('btd,dr->btr', inputs, linear_left)
   computed_outputs = jnp.einsum('btr,rd->btd', computed_outputs, linear_right)
-  np.testing.assert_array_almost_equal(outputs, computed_outputs)
+  np.testing.assert_array_almost_equal(outputs, computed_outputs)  # pyrefly: ignore[bad-argument-type]
 
 
 def test_block_with_laurel():
@@ -828,7 +828,7 @@ def test_block_with_laurel():
 
   # Check that output shape is correct.
   expected_output_shape = (batch_size, seq_len, embed_dim)
-  np.testing.assert_array_equal(outputs.shape, expected_output_shape)
+  np.testing.assert_array_equal(outputs.shape, expected_output_shape)  # pyrefly: ignore[missing-attribute]
 
 
 def test_per_layer_mapping():
@@ -847,7 +847,7 @@ def test_per_layer_mapping():
   params = per_layer_mapping.init(jax.random.PRNGKey(0), x, pli)
   output = per_layer_mapping.apply(params, x, pli)
   expected_shape = (batch_size, seq_len, features)
-  np.testing.assert_array_equal(output.shape, expected_shape)
+  np.testing.assert_array_equal(output.shape, expected_shape)  # pyrefly: ignore[missing-attribute]
 
 
 def test_block_with_per_layer_mapping():
@@ -909,4 +909,4 @@ def test_block_with_per_layer_mapping():
 
   # Check that output shape is correct.
   expected_output_shape = (batch_size, seq_len, embed_dim)
-  assert outputs.shape == expected_output_shape
+  assert outputs.shape == expected_output_shape  # pyrefly: ignore[missing-attribute]

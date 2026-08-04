@@ -481,7 +481,7 @@ def test_block():
 
   # Check that output shape is correct.
   expected_output_shape = (batch_size, seq_len, embed_dim)
-  assert outputs.shape == expected_output_shape
+  assert outputs.shape == expected_output_shape  # pyrefly: ignore[missing-attribute]
 
 
 def test_post_attention_norm_modifies_output():

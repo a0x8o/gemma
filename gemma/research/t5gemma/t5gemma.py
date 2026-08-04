@@ -163,7 +163,7 @@ class T5Gemma(nn.Module):
       self,
       target_tokens: Array['B L'],
       positions: Array['B L'],
-      cross_attn_mask: Array['B #L L2'],
+      cross_attn_mask: Array['B #L L2'],  # pyrefly: ignore[unknown-name]
       self_attn_mask: Array['#B L _'],
       cache: Cache | None = None
   ) -> T5GemmaOutput:

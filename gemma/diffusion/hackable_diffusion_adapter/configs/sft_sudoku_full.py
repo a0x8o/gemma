@@ -106,28 +106,28 @@ def get_config():
   cfg = kd.train.Trainer()
   cfg.seed = 42
   cfg.aux = {}
-  cfg.aux.vocab_size = 262_144  # Gemma4 vocabulary size
+  cfg.aux.vocab_size = 262_144  # Gemma4 vocabulary size  # pyrefly: ignore[missing-attribute]
 
-  cfg.aux.corruption_process = hd.corruption.CategoricalProcess.uniform_process(
+  cfg.aux.corruption_process = hd.corruption.CategoricalProcess.uniform_process(  # pyrefly: ignore[missing-attribute]
       num_categories=cfg.ref.aux.vocab_size,
       schedule=hd.corruption.LinearDiscreteSchedule(),
   )
-  cfg.aux.prompt_len = 256
-  cfg.aux.num_canvases = 1
-  cfg.aux.canvas_size = 256
+  cfg.aux.prompt_len = 256  # pyrefly: ignore[missing-attribute]
+  cfg.aux.num_canvases = 1  # pyrefly: ignore[missing-attribute]
+  cfg.aux.canvas_size = 256  # pyrefly: ignore[missing-attribute]
   use_lora = False
   lora_rank = 8
-  cfg.aux.use_lora = use_lora
-  cfg.aux.lora_rank = lora_rank
-  cfg.aux.peak_lr = 1.5e-4
-  cfg.aux.end_lr = cfg.ref.aux.peak_lr / 10
-  cfg.aux.checkpoint_every_n_steps = 1000
-  cfg.aux.eval_num_batches = None
-  cfg.aux.stop_gradient_from_denoiser_to_encoder = False
-  cfg.aux.encoder_loss_weight = 1.0
-  cfg.aux.decoder_loss_weight = 1.0
+  cfg.aux.use_lora = use_lora  # pyrefly: ignore[missing-attribute]
+  cfg.aux.lora_rank = lora_rank  # pyrefly: ignore[missing-attribute]
+  cfg.aux.peak_lr = 1.5e-4  # pyrefly: ignore[missing-attribute]
+  cfg.aux.end_lr = cfg.ref.aux.peak_lr / 10  # pyrefly: ignore[missing-attribute]
+  cfg.aux.checkpoint_every_n_steps = 1000  # pyrefly: ignore[missing-attribute]
+  cfg.aux.eval_num_batches = None  # pyrefly: ignore[missing-attribute]
+  cfg.aux.stop_gradient_from_denoiser_to_encoder = False  # pyrefly: ignore[missing-attribute]
+  cfg.aux.encoder_loss_weight = 1.0  # pyrefly: ignore[missing-attribute]
+  cfg.aux.decoder_loss_weight = 1.0  # pyrefly: ignore[missing-attribute]
 
-  cfg.aux.sudoku_prompt = (
+  cfg.aux.sudoku_prompt = (  # pyrefly: ignore[missing-attribute]
       "<|turn>system Solve the following Sudoku puzzle. Empty cells are"
       " represented by 0. Output ONLY the solved puzzle immediately as"
       " a 9x9 grid of numbers separated by spaces. Do not include ####,"
@@ -193,7 +193,7 @@ def get_config():
           peak_value=cfg.ref.aux.peak_lr,
           end_value=cfg.ref.aux.end_lr,
           warmup_steps=1000,
-          decay_steps=cfg.ref.num_train_steps,
+          decay_steps=cfg.ref.num_train_steps,  # pyrefly: ignore[bad-argument-type]
       ),
   }
 
@@ -248,7 +248,7 @@ def get_config():
           extraction_mode=sudoku_eval.ExtractionMode.THINKING,
       ),
   }
-  eval_metrics.update({
+  eval_metrics.update({  # pyrefly: ignore[no-matching-overload]
       "processed_denoising_steps": kd.metrics.SingleDimension(
           tensor="processed_denoising_steps", index=None
       ),

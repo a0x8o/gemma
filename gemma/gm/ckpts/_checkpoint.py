@@ -264,19 +264,19 @@ def load_params(
   else:
     # If params explicitly provided, use that
     params = _CheckpointTree(tree=params)  # pyrefly: ignore[bad-assignment]
-    if params.type != _CheckpointType.NESTED:
+    if params.type != _CheckpointType.NESTED:  # pyrefly: ignore[missing-attribute]
       raise ValueError(
           'The input params provided to `load_params()` should be the raw'
           " model params matching the Flax `model.init()['params']` structure."
           f' Got: {_CheckpointType.NESTED}'
       )
-    if text_only and params.has_mm_params:
+    if text_only and params.has_mm_params:  # pyrefly: ignore[missing-attribute]
       raise ValueError(
           'The input params provided to `load_params()` has multimodal params,'
           ' but `text_only` is `True`.'
       )
 
-  if params.has_mm_params and not metadata.has_mm_params:
+  if params.has_mm_params and not metadata.has_mm_params:  # pyrefly: ignore[missing-attribute]
     raise ValueError(
         'The input params provided to `load_params()` has MM params, but the'
         ' checkpoint does not. This is not supported.'
@@ -299,7 +299,7 @@ def load_params(
   # Then after restoring, the params are remapped back to the final structure.
   output = _CheckpointTree(tree=output)
   output = output.as_nested(
-      remove_mm=metadata.has_mm_params and not params.has_mm_params
+      remove_mm=metadata.has_mm_params and not params.has_mm_params  # pyrefly: ignore[missing-attribute]
   )
 
   # HACK: Manually cast the MM embedder params to f32, otherwise, image
@@ -415,7 +415,7 @@ def _remove_mm_params(params):
     del params['vision_encoder']  # pyrefly: ignore[unsupported-operation]
   for k in ('mm_input_projection', 'mm_soft_embedding_norm',
             'mm_pre_projection_norm', 'mm_input_embedding_extra'):
-    if k in params.get('embedder', {}):
+    if k in params.get('embedder', {}):  # pyrefly: ignore[missing-attribute]
       del params['embedder'][k]  # pyrefly: ignore[bad-index, unsupported-operation]
 
   # Audio params (Gemma4)
@@ -423,7 +423,7 @@ def _remove_mm_params(params):
     del params['audio_encoder']  # pyrefly: ignore[unsupported-operation]
   for k in ('audio_input_projection', 'audio_soft_embedding_norm',
             'audio_input_embedding', 'audio_input_embedding_extra'):
-    if k in params.get('embedder', {}):
+    if k in params.get('embedder', {}):  # pyrefly: ignore[missing-attribute]
       del params['embedder'][k]  # pyrefly: ignore[bad-index, unsupported-operation]
 
   return params

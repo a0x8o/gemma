@@ -60,6 +60,6 @@ def test_model_initialization_and_shape():
   expected_shape = (batch_size, expected_seq_len, config.lm_model_dims)
 
   assert output.shape == expected_shape
-  assert padding_mask.shape == (batch_size, expected_seq_len)
-  assert padding_mask.dtype == jnp.bool_
+  assert padding_mask.shape == (batch_size, expected_seq_len)  # pyrefly: ignore[missing-attribute]
+  assert padding_mask.dtype == jnp.bool_  # pyrefly: ignore[missing-attribute]
   assert not jnp.any(jnp.isnan(output))

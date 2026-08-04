@@ -563,11 +563,11 @@ def _normalize_images(
   # to resize and batch the images.
   if not has_batch_dim:
     if len(images.shape) == 3:  # Add the `N` optional dimension   # pytype: disable=attribute-error
-      images = images[None, ...]
-    images = images[None, ...]  # Add the `B` dimension
+      images = images[None, ...]  # pyrefly: ignore[bad-index]
+    images = images[None, ...]  # Add the `B` dimension  # pyrefly: ignore[bad-index]
   else:
     if len(images.shape) == 4:  # Add the `N` optional dimension   # pytype: disable=attribute-error
-      images = images[:, None, ...]
+      images = images[:, None, ...]  # pyrefly: ignore[bad-index]
   return images
 
 

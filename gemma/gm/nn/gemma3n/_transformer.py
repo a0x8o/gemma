@@ -304,11 +304,11 @@ class Gemma3nTransformer(_transformer.Transformer):
           shared_layer_name = f'layer_{self.kv_cache_sharing_patterns[i]}'
           kv_shared_cache = new_cache.get(shared_layer_name)
         layer_cache, x = block(
-            x,
+            x,  # pyrefly: ignore[bad-argument-type]
             inputs.positions,
             old_cache.get(layer_name),
             inputs.attention_mask,
-            per_layer_input=per_layer_inputs[..., i, :]  # pyrefly: ignore[unexpected-keyword]
+            per_layer_input=per_layer_inputs[..., i, :]  # pyrefly: ignore[unexpected-keyword, unsupported-operation]
             if self.config.per_layer_input_dim
             else None,
             kv_shared_cache=kv_shared_cache,  # pyrefly: ignore[unexpected-keyword]

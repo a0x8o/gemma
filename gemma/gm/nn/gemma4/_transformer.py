@@ -378,7 +378,7 @@ class Transformer(nn.Module):
           inputs.positions,
           old_cache.get(layer_name),
           attn_mask,
-          per_layer_inputs[..., i, :]
+          per_layer_inputs[..., i, :]  # pyrefly: ignore[unsupported-operation]
           if self.config.per_layer_input_dim
           else None,
           kv_shared_cache=kv_shared_cache,
